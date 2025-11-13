@@ -1,0 +1,5 @@
+{
+  "name": "Si-Pandai - Sistem Pengajuan Institusi",
+  "description": "A comprehensive web-based system for managing institutional budget proposals and data, featuring role-based access for departments (Prodi) and directorate, real-time notifications, and detailed analytics dashboards.",
+  "requestFramePermissions": []
+}

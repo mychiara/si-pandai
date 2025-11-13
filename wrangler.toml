@@ -1,0 +1,9 @@
+name = "si-pandai-api" # Nama worker Anda
+main = "worker/index.ts" # Path ke file worker
+compatibility_date = "2024-05-01"
+
+# Binding (menghubungkan) D1 ke Worker kita
+[[d1_databases]]
+binding = "si_pandai_db" # Nama variabel untuk mengakses DB di dalam worker
+database_name = "si-pandai-db"
+database_id = "253f1593-a34d-4ecb-82b0-e82d596271fa" # Ganti dengan ID dari langkah sebelumnya
