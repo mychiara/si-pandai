@@ -1,274 +1,202 @@
 import {
   Role,
-  AjuanStatus,
-  GrubBelanja,
   User,
   Ajuan,
-  AjuanItem,
+  AjuanStatus,
+  GrubBelanja,
   KelompokBelanja,
   ActivityLog,
   Notification,
+  AjuanItem,
 } from '../types';
 
-// --- MOCK DATABASE ---
-
-const DB_USERS: User[] = [
-  {
-    id: 'user-1',
-    email: 'prodi@test.com',
-    nama: 'Ahmad Budi',
-    role: Role.Prodi,
-    idProdi: 'prodi-ti',
-    namaProdi: 'Teknik Informatika',
-    paguAwal: 1_000_000_000,
-    jabatanTtd: 'Kepala Prodi Teknik Informatika',
-  },
-  {
-    id: 'user-2',
-    email: 'direktorat@test.com',
-    nama: 'Siti Aminah',
-    role: Role.Direktorat,
-    paguAwal: 0, // Direktorat doesn't have a specific budget limit itself
-    jabatanTtd: 'Direktur Keuangan',
-  },
+// --- MOCK DATA ---
+// This data is used when running in development mode without a VITE_API_URL.
+const MOCK_USERS: User[] = [
+  { id: 'user-1', email: 'prodi@test.com', nama: 'Ahmad Budi', role: Role.Prodi, idProdi: 'prodi-ti', namaProdi: 'Teknik Informatika', paguAwal: 1000000000, paguPerubahan: 1200000000, jabatanTtd: 'Kepala Prodi Teknik Informatika' },
+  { id: 'user-2', email: 'direktorat@test.com', nama: 'Siti Aminah', role: Role.Direktorat, paguAwal: 0, jabatanTtd: 'Direktur Keuangan' },
+  { id: 'user-3', email: 'prodi2@test.com', nama: 'Charlie Darmawan', role: Role.Prodi, idProdi: 'prodi-si', namaProdi: 'Sistem Informasi', paguAwal: 800000000, jabatanTtd: 'Kepala Prodi Sistem Informasi' },
 ];
 
-const DB_KELOMPOK: KelompokBelanja[] = [
-    { id: 'kb-1', nama: 'Belanja Bahan', grub: GrubBelanja.A },
-    { id: 'kb-2', nama: 'Perjalanan Dinas', grub: GrubBelanja.B },
-    { id: 'kb-3', nama: 'Sewa', grub: GrubBelanja.C },
-    { id: 'kb-4', nama: 'Gaji & Upah', grub: GrubBelanja.D },
-    { id: 'kb-5', nama: 'Pemeliharaan', grub: GrubBelanja.E },
-    { id: 'kb-6', nama: 'Lain-lain', grub: GrubBelanja.F },
+const MOCK_KELOMPOK_BELANJA: KelompokBelanja[] = [
+    { id: 'kb-1', nama: 'Belanja Pegawai', grub: GrubBelanja.A },
+    { id: 'kb-2', nama: 'Belanja Barang', grub: GrubBelanja.B },
+    { id: 'kb-3', nama: 'Belanja Modal', grub: GrubBelanja.C },
+    { id: 'kb-4', nama: 'Beban Sewa', grub: GrubBelanja.D },
+    { id: 'kb-5', nama: 'Perjalanan Dinas', grub: GrubBelanja.E },
 ];
 
-let DB_AJUANS: Ajuan[] = [
-  {
-    id: 'ajuan-1',
-    judulKegiatan: 'Workshop Pengembangan Kurikulum 2024',
-    idProdi: 'prodi-ti',
-    namaProdi: 'Teknik Informatika',
-    pembuat: 'Ahmad Budi',
-    totalAnggaran: 15_000_000,
-    status: AjuanStatus.Diterima,
-    tipe: 'awal',
-    revisiKe: 0,
-    items: [
-        { id: 'item-1', deskripsi: 'Sewa Gedung', grubBelanja: GrubBelanja.C, kelompokBelanja: 'Sewa', jumlah: 1, satuan: 'hari', harga: 5_000_000, total: 5_000_000, keterangan: '' },
-        { id: 'item-2', deskripsi: 'Konsumsi Peserta', grubBelanja: GrubBelanja.A, kelompokBelanja: 'Belanja Bahan', jumlah: 100, satuan: 'paket', harga: 50_000, total: 5_000_000, keterangan: '' },
-        { id: 'item-3', deskripsi: 'Honorarium Narasumber', grubBelanja: GrubBelanja.D, kelompokBelanja: 'Gaji & Upah', jumlah: 2, satuan: 'orang', harga: 2_500_000, total: 5_000_000, keterangan: '' },
-    ],
-    createdAt: new Date('2024-01-15T09:00:00Z'),
-    updatedAt: new Date('2024-01-20T14:30:00Z'),
-    history: [],
-  },
-  {
-    id: 'ajuan-2',
-    judulKegiatan: 'Studi Banding ke Universitas Terkemuka',
-    idProdi: 'prodi-ti',
-    namaProdi: 'Teknik Informatika',
-    pembuat: 'Ahmad Budi',
-    totalAnggaran: 27_500_000,
-    status: AjuanStatus.Menunggu,
-    tipe: 'awal',
-    revisiKe: 0,
-    items: [
-        { id: 'item-4', deskripsi: 'Tiket Pesawat PP', grubBelanja: GrubBelanja.B, kelompokBelanja: 'Perjalanan Dinas', jumlah: 5, satuan: 'tiket', harga: 4_000_000, total: 20_000_000, keterangan: '' },
-        { id: 'item-5', deskripsi: 'Akomodasi Hotel', grubBelanja: GrubBelanja.B, kelompokBelanja: 'Perjalanan Dinas', jumlah: 5, satuan: 'kamar', harga: 1_500_000, total: 7_500_000, keterangan: '3 malam' },
-    ],
-    createdAt: new Date('2024-02-10T11:00:00Z'),
-    updatedAt: new Date('2024-02-10T11:00:00Z'),
-    history: [],
+const MOCK_AJUANS: Ajuan[] = [
+  { id: 'ajuan-1', judulKegiatan: 'Pengadaan Komputer Lab', idProdi: 'prodi-ti', namaProdi: 'Teknik Informatika', pembuat: 'Ahmad Budi', totalAnggaran: 50000000, status: AjuanStatus.Diterima, tipe: 'awal', revisiKe: 0, items: [], createdAt: new Date('2023-10-01'), updatedAt: new Date('2023-10-05'), history: [] },
+  { id: 'ajuan-2', judulKegiatan: 'Seminar Nasional AI', idProdi: 'prodi-ti', namaProdi: 'Teknik Informatika', pembuat: 'Ahmad Budi', totalAnggaran: 25000000, status: AjuanStatus.Menunggu, tipe: 'awal', revisiKe: 0, items: [], createdAt: new Date('2023-10-15'), updatedAt: new Date('2023-10-15'), history: [] },
+  { id: 'ajuan-3', judulKegiatan: 'Workshop Pengembangan Sistem', idProdi: 'prodi-si', namaProdi: 'Sistem Informasi', pembuat: 'Charlie Darmawan', totalAnggaran: 15000000, status: AjuanStatus.Ditolak, tipe: 'awal', revisiKe: 1, items: [], createdAt: new Date('2023-11-01'), updatedAt: new Date('2023-11-02'), history: [] },
+  { id: 'ajuan-4', judulKegiatan: 'Penambahan Lisensi Software', idProdi: 'prodi-ti', namaProdi: 'Teknik Informatika', pembuat: 'Ahmad Budi', totalAnggaran: 12000000, status: AjuanStatus.Revisi, tipe: 'perubahan', tahapPerubahan: 1, revisiKe: 2, items: [], createdAt: new Date('2024-01-20'), updatedAt: new Date('2024-01-22'), history: [] },
+];
+
+const MOCK_NOTIFICATIONS: Notification[] = [
+    { id: 'notif-1', userId: 'user-1', message: 'Ajuan "Seminar Nasional AI" telah diterima oleh direktorat.', read: false, createdAt: new Date() },
+    { id: 'notif-2', userId: 'user-1', message: 'Ajuan "Pengadaan Komputer Lab" membutuhkan revisi.', read: true, createdAt: new Date(Date.now() - 86400000 * 2) },
+    { id: 'notif-3', userId: 'user-2', message: 'Ajuan baru "Workshop Big Data" dari prodi Sistem Informasi menunggu review Anda.', read: false, createdAt: new Date() },
+];
+
+const MOCK_LOGS: ActivityLog[] = [
+    { id: 'log-1', timestamp: new Date(), user: 'Siti Aminah', userId: 'user-2', action: 'Menolak ajuan "Workshop Pengembangan Sistem".' },
+    { id: 'log-2', timestamp: new Date(Date.now() - 3600000), user: 'Ahmad Budi', userId: 'user-1', action: 'Mengirim ajuan baru "Seminar Nasional AI".' },
+];
+
+// --- REAL API SERVICE ---
+// FIX: Cast import.meta to any to access env properties for Vite. This is a common workaround for TypeScript's lack of built-in vite env types.
+const API_BASE_URL = (import.meta as any).env?.VITE_API_URL;
+const SESSION_KEY = 'si-pandai-user';
+
+async function apiFetch<T>(endpoint: string, options: RequestInit = {}): Promise<T> {
+  if (!API_BASE_URL) {
+    throw new Error('API URL is not configured. The VITE_API_URL environment variable is missing.');
   }
-];
+  
+  const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    ...options,
+    headers: { 'Content-Type': 'application/json', ...options.headers },
+  });
 
-let DB_NOTIFICATIONS: Notification[] = [
-    { id: 'notif-1', userId: 'user-1', message: 'Ajuan "Workshop Kurikulum" telah diterima.', read: true, createdAt: new Date('2024-01-20T14:31:00Z')},
-    { id: 'notif-2', userId: 'user-2', message: 'Ajuan baru "Studi Banding" dari T. Informatika perlu direview.', read: false, createdAt: new Date('2024-02-10T11:01:00Z')},
-];
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({ error: 'An unknown error occurred' }));
+    throw new Error(errorData.error || `HTTP error! status: ${response.status}`);
+  }
+  return response.json();
+}
 
-let DB_LOGS: ActivityLog[] = [
-    { id: 'log-1', timestamp: new Date('2024-02-10T11:00:00Z'), user: 'Ahmad Budi', userId: 'user-1', action: 'Mengirim ajuan baru: Studi Banding ke Universitas Terkemuka' },
-    { id: 'log-2', timestamp: new Date('2024-02-10T10:55:00Z'), user: 'Ahmad Budi', userId: 'user-1', action: 'Login berhasil' },
-    { id: 'log-3', timestamp: new Date('2024-02-09T09:00:00Z'), user: 'Siti Aminah', userId: 'user-2', action: 'Login berhasil' },
-];
-
-const SESSION_KEY = 'si-pandai-user-id';
-
-const delay = (ms: number) => new Promise(res => setTimeout(res, ms));
-
-
-// --- API SERVICE IMPLEMENTATION ---
-
-export const apiService = {
+const realApiService = {
   async login(email: string, password: string): Promise<User> {
-    await delay(500);
-    const user = DB_USERS.find(u => u.email === email);
-    // Use a simple password for mock purposes
-    if (user && password === 'password') { 
-        localStorage.setItem(SESSION_KEY, user.id);
-        DB_LOGS.unshift({ id: `log-${Date.now()}`, timestamp: new Date(), user: user.nama, userId: user.id, action: 'Login berhasil' });
-        return user;
-    }
-    throw new Error('Email atau password salah.');
+    const user = await apiFetch<User>('/api/login', {
+      method: 'POST',
+      body: JSON.stringify({ email, password }),
+    });
+    localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+    return user;
   },
-
-  async logout(): Promise<void> {
-    await delay(200);
-    const userId = localStorage.getItem(SESSION_KEY);
-    const user = DB_USERS.find(u => u.id === userId);
-     if (user) {
-        DB_LOGS.unshift({ id: `log-${Date.now()}`, timestamp: new Date(), user: user.nama, userId: user.id, action: 'Logout' });
-    }
+  logout: async (): Promise<void> => {
     localStorage.removeItem(SESSION_KEY);
   },
-  
-  async checkSession(): Promise<User | null> {
-    await delay(300);
-    const userId = localStorage.getItem(SESSION_KEY);
-    if (!userId) return null;
-    return DB_USERS.find(u => u.id === userId) || null;
+  checkSession: async (): Promise<User | null> => JSON.parse(localStorage.getItem(SESSION_KEY) || 'null'),
+  isTahapPerubahanActive: (): Promise<boolean> => apiFetch<boolean>('/api/status/tahap-perubahan'),
+  getNotifications: (userId: string): Promise<Notification[]> => apiFetch<Notification[]>(`/api/notifications?userId=${userId}`),
+  markNotificationsAsRead: (userId: string): Promise<void> => apiFetch<void>(`/api/notifications/mark-read`, { method: 'POST', body: JSON.stringify({ userId }) }),
+  getUsers: (): Promise<User[]> => apiFetch<User[]>('/api/users'),
+  getKelompokBelanja: (): Promise<KelompokBelanja[]> => apiFetch<KelompokBelanja[]>('/api/kelompok-belanja'),
+  getAjuans: (userId: string, role: Role, ajuanType: 'awal' | 'perubahan'): Promise<Ajuan[]> => {
+      const params = new URLSearchParams({ userId, role, ajuanType });
+      return apiFetch<Ajuan[]>(`/api/ajuans?${params.toString()}`);
   },
-
-  async isTahapPerubahanActive(): Promise<boolean> {
-      await delay(50);
-      return true; // Simulate that "Tahap Perubahan" is active
-  },
-  
-  async getNotifications(userId: string): Promise<Notification[]> {
-      await delay(100);
-      return DB_NOTIFICATIONS.filter(n => n.userId === userId).sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime());
-  },
-
-  async markNotificationsAsRead(userId: string): Promise<void> {
-      await delay(50);
-      DB_NOTIFICATIONS.forEach(n => {
-          if (n.userId === userId && !n.read) {
-              n.read = true;
-          }
-      });
-  },
-
-  async getUsers(): Promise<User[]> {
-      await delay(200);
-      return [...DB_USERS];
-  },
-
-  async getKelompokBelanja(): Promise<KelompokBelanja[]> {
-      await delay(100);
-      return [...DB_KELOMPOK];
-  },
-  
-  async getAjuans(userId: string, role: Role, ajuanType: 'awal' | 'perubahan'): Promise<Ajuan[]> {
-      await delay(400);
-      const user = DB_USERS.find(u => u.id === userId);
-      let ajuans = DB_AJUANS.filter(a => a.tipe === ajuanType);
-      
-      if (role === Role.Prodi) {
-          ajuans = ajuans.filter(a => a.idProdi === user?.idProdi);
-      }
-      return ajuans.sort((a,b) => b.createdAt.getTime() - a.createdAt.getTime());
-  },
-
-  async createAjuan(payload: { judulKegiatan: string; items: AjuanItem[]; userId: string }): Promise<Ajuan> {
-      await delay(600);
-      const user = DB_USERS.find(u => u.id === payload.userId);
-      if (!user || user.role !== Role.Prodi) {
-          throw new Error('Hanya user Prodi yang bisa membuat ajuan.');
-      }
-
-      const totalAnggaran = payload.items.reduce((sum, item) => sum + item.total, 0);
-
-      const newAjuan: Ajuan = {
-        id: `ajuan-${Date.now()}`,
-        judulKegiatan: payload.judulKegiatan,
-        idProdi: user.idProdi!,
-        namaProdi: user.namaProdi!,
-        pembuat: user.nama,
-        totalAnggaran,
-        status: AjuanStatus.Menunggu,
-        tipe: 'awal', // for simplicity, could be dynamic
-        revisiKe: 0,
-        items: payload.items,
-        createdAt: new Date(),
-        updatedAt: new Date(),
-        history: [],
-      };
-
-      DB_AJUANS.unshift(newAjuan);
-      DB_LOGS.unshift({ id: `log-${Date.now()}`, timestamp: new Date(), user: user.nama, userId: user.id, action: `Membuat ajuan baru: ${payload.judulKegiatan}` });
-      
-      const direktoratUser = DB_USERS.find(u => u.role === Role.Direktorat);
-      if (direktoratUser) {
-        DB_NOTIFICATIONS.unshift({
-            id: `notif-${Date.now()}`,
-            userId: direktoratUser.id,
-            message: `Ajuan baru "${payload.judulKegiatan}" dari ${user.namaProdi} perlu direview.`,
-            read: false,
-            createdAt: new Date(),
-        });
-      }
-
-      return newAjuan;
-  },
-  
-  async getActivityLogs(): Promise<ActivityLog[]> {
-      await delay(250);
-      return DB_LOGS.sort((a, b) => b.timestamp.getTime() - a.timestamp.getTime());
-  },
-
-  async getDashboardStats(userId: string, role: Role): Promise<any> {
-    await delay(500);
-    const user = DB_USERS.find(u => u.id === userId);
-    
-    let relevantAjuans = DB_AJUANS;
-    if (role === Role.Prodi) {
-      relevantAjuans = DB_AJUANS.filter(a => a.idProdi === user?.idProdi);
-    }
-
-    const totalPagu = user?.paguAwal || 0;
-    const totalDiajukan = relevantAjuans.reduce((sum, a) => sum + a.totalAnggaran, 0);
-    const acceptedAjuans = relevantAjuans.filter(a => a.status === AjuanStatus.Diterima);
-    const totalDiterima = acceptedAjuans.reduce((sum, a) => sum + a.totalAnggaran, 0);
-
-    // Mock RPD and Realisasi as percentages of the accepted budget
-    const totalRpd = totalDiterima * 0.8;
-    const totalRealisasi = totalDiterima * 0.6;
-
-    const statusCounts = relevantAjuans.reduce((acc, a) => {
-        acc[a.status] = (acc[a.status] || 0) + 1;
-        return acc;
-    }, {} as { [key in AjuanStatus]: number });
-
-    // Mock monthly data for chart
-    const rpdVsRealisasi = [
-        { bulan: 'Jan', RPD: totalDiterima * 0.1, Realisasi: totalDiterima * 0.08 },
-        { bulan: 'Feb', RPD: totalDiterima * 0.15, Realisasi: totalDiterima * 0.12 },
-        { bulan: 'Mar', RPD: totalDiterima * 0.2, Realisasi: totalDiterima * 0.18 },
-        { bulan: 'Apr', RPD: totalDiterima * 0.1, Realisasi: totalDiterima * 0.09 },
-        { bulan: 'Mei', RPD: totalDiterima * 0.25, Realisasi: totalDiterima * 0.13 },
-    ];
-
-    let realisasiPerProdi: any[] = [];
-    if (role === Role.Direktorat) {
-        const prodiMap = new Map<string, { nama: string; totalRealisasi: number }>();
-        DB_AJUANS.filter(a => a.status === AjuanStatus.Diterima).forEach(a => {
-            const entry = prodiMap.get(a.idProdi) || { nama: a.namaProdi, totalRealisasi: 0 };
-            // Mocking realization as 60% of the approved budget for each proposal
-            entry.totalRealisasi += a.totalAnggaran * 0.6;
-            prodiMap.set(a.idProdi, entry);
-        });
-        realisasiPerProdi = Array.from(prodiMap.values());
-    }
-    
-    return {
-        totalPagu,
-        totalDiajukan,
-        totalRpd,
-        totalRealisasi,
-        statusCounts,
-        rpdVsRealisasi,
-        realisasiPerProdi
-    };
+  createAjuan: (payload: { judulKegiatan: string; items: any[]; userId: string }): Promise<Ajuan> => apiFetch<Ajuan>('/api/ajuans', { method: 'POST', body: JSON.stringify(payload) }),
+  getActivityLogs: (): Promise<ActivityLog[]> => apiFetch<ActivityLog[]>('/api/logs'),
+  getDashboardStats: (userId: string, role: Role): Promise<any> => {
+    const params = new URLSearchParams({ userId, role });
+    return apiFetch<any>(`/api/dashboard-stats?${params.toString()}`);
   }
 };
+
+// --- MOCK API SERVICE ---
+const mockApiService = {
+    async login(email: string, password: string): Promise<User> {
+        console.log("MOCK: Logging in...");
+        const user = MOCK_USERS.find(u => u.email === email);
+        if (user && password === 'password') { // Mock password check
+            localStorage.setItem(SESSION_KEY, JSON.stringify(user));
+            return Promise.resolve(user);
+        }
+        return Promise.reject(new Error('Email atau password salah.'));
+    },
+    async logout(): Promise<void> {
+        console.log("MOCK: Logging out...");
+        localStorage.removeItem(SESSION_KEY);
+        return Promise.resolve();
+    },
+    async checkSession(): Promise<User | null> {
+        const userJson = localStorage.getItem(SESSION_KEY);
+        return Promise.resolve(userJson ? JSON.parse(userJson) : null);
+    },
+    async isTahapPerubahanActive(): Promise<boolean> {
+        return Promise.resolve(true); // Simulate tahap perubahan is active
+    },
+    async getNotifications(userId: string): Promise<Notification[]> {
+        return Promise.resolve(MOCK_NOTIFICATIONS.filter(n => n.userId === userId));
+    },
+    async markNotificationsAsRead(userId: string): Promise<void> {
+        MOCK_NOTIFICATIONS.forEach(n => { if(n.userId === userId) n.read = true; });
+        return Promise.resolve();
+    },
+    async getUsers(): Promise<User[]> {
+        return Promise.resolve(MOCK_USERS);
+    },
+    async getKelompokBelanja(): Promise<KelompokBelanja[]> {
+        return Promise.resolve(MOCK_KELOMPOK_BELANJA);
+    },
+    async getAjuans(userId: string, role: Role, ajuanType: 'awal' | 'perubahan'): Promise<Ajuan[]> {
+        let ajuans = MOCK_AJUANS.filter(a => a.tipe === ajuanType);
+        if (role === Role.Prodi) {
+            const user = MOCK_USERS.find(u => u.id === userId);
+            ajuans = ajuans.filter(a => a.idProdi === user?.idProdi);
+        }
+        return Promise.resolve(ajuans);
+    },
+    async createAjuan(payload: { judulKegiatan: string; items: AjuanItem[]; userId: string }): Promise<Ajuan> {
+        const user = MOCK_USERS.find(u => u.id === payload.userId)!;
+        const newAjuan: Ajuan = {
+            id: `ajuan-${Date.now()}`,
+            judulKegiatan: payload.judulKegiatan,
+            items: payload.items,
+            idProdi: user.idProdi!,
+            namaProdi: user.namaProdi!,
+            pembuat: user.nama,
+            status: AjuanStatus.Menunggu,
+            tipe: 'awal',
+            totalAnggaran: payload.items.reduce((sum, item) => sum + item.total, 0),
+            revisiKe: 0,
+            createdAt: new Date(),
+            updatedAt: new Date(),
+            history: [],
+        };
+        MOCK_AJUANS.push(newAjuan);
+        return Promise.resolve(newAjuan);
+    },
+    async getActivityLogs(): Promise<ActivityLog[]> {
+        return Promise.resolve(MOCK_LOGS);
+    },
+    async getDashboardStats(userId: string, role: Role): Promise<any> {
+        const user = MOCK_USERS.find(u => u.id === userId)!
+        const stats = {
+            totalPagu: user.paguAwal,
+            totalDiajukan: 87000000,
+            totalRpd: 45000000,
+            totalRealisasi: 30000000,
+            rpdVsRealisasi: [
+                { bulan: 'Jan', rpd: 5000000, realisasi: 4000000 },
+                { bulan: 'Feb', rpd: 10000000, realisasi: 8000000 },
+                { bulan: 'Mar', rpd: 15000000, realisasi: 12000000 },
+                { bulan: 'Apr', rpd: 15000000, realisasi: 6000000 },
+            ],
+            statusCounts: { [AjuanStatus.Menunggu]: 1, [AjuanStatus.Diterima]: 1, [AjuanStatus.Ditolak]: 1, [AjuanStatus.Revisi]: 1 },
+            realisasiPerProdi: [
+                { nama: 'Teknik Informatika', totalRealisasi: 200000000 },
+                { nama: 'Sistem Informasi', totalRealisasi: 150000000 },
+            ]
+        };
+        return Promise.resolve(stats);
+    }
+};
+
+// --- EXPORT LOGIC ---
+// Use mock service if in development and VITE_API_URL is not set.
+// Otherwise, use the real service.
+// FIX: Cast import.meta to any to access env properties for Vite.
+const useMock = (import.meta as any).env?.DEV && !API_BASE_URL;
+
+if (useMock) {
+    console.warn(
+      "VITE_API_URL is not set. Application is running in development mode with MOCK DATA. " +
+      "To connect to a real backend, set the VITE_API_URL environment variable."
+    );
+}
+
+export const apiService = useMock ? mockApiService : realApiService;
