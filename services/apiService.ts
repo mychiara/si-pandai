@@ -189,14 +189,6 @@ const mockApiService = {
 // --- EXPORT LOGIC ---
 // Use mock service if in development and VITE_API_URL is not set.
 // Otherwise, use the real service.
-// FIX: Cast import.meta to any to access env properties for Vite.
 const useMock = (import.meta as any).env?.DEV && !API_BASE_URL;
-
-if (useMock) {
-    console.warn(
-      "VITE_API_URL is not set. Application is running in development mode with MOCK DATA. " +
-      "To connect to a real backend, set the VITE_API_URL environment variable."
-    );
-}
 
 export const apiService = useMock ? mockApiService : realApiService;
